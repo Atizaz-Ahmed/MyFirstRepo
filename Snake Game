@@ -1,0 +1,137 @@
+#include <iostream>
+using namespace std;
+const int width = 20;
+const int height = 20;
+int snakeX, snakeY;
+int fruitX, fruitY;
+const int STOP = 0, LEFT = 1, RIGHT = 2, UP = 3, DOWN = 4;
+int dir;
+bool gameOver;
+int tailX[100], tailY[100];
+int nTail;
+unsigned int customSeed = 1;
+int customRand(int min, int max) {
+    customSeed = customSeed * 1103515245 + 12345;
+    return min + (customSeed % (max - min + 1));
+}
+void Setup() {
+    gameOver = false;
+    dir = STOP;
+    snakeX = width / 2;
+    snakeY = height / 2;
+    fruitX = customRand(0, width - 1);
+    fruitY = customRand(0, height - 1);
+    nTail = 0;
+}
+
+void Draw() {
+    for (int i = 0; i < width + 2; i++)
+        cout << "#";
+    cout << endl;
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            if (j == 0)
+                cout << "#";
+            if (i == snakeY && j == snakeX)
+                cout << "O";
+            else if (i == fruitY && j == fruitX)
+                cout << "F";
+            else {
+                bool printTail = false;
+                for (int k = 0; k < nTail; k++) {
+                    if (tailX[k] == j && tailY[k] == i) {
+                        cout << "o";
+                        printTail = true;
+                    }
+                }
+                if (!printTail)
+                    cout << " ";
+            }
+            if (j == width - 1)
+                cout << "#";
+        }
+        cout << endl;
+    }
+
+    for (int i = 0; i < width + 2; i++)
+        cout << "#";
+    cout << endl;
+
+    cout << "Score: " << nTail << endl;
+}
+
+void Input() {
+    char c;
+    if (cin >> c) {
+        switch (c) {
+        case 'a':
+            if (dir != RIGHT) dir = LEFT;
+            break;
+        case 'd':
+            if (dir != LEFT) dir = RIGHT;
+            break;
+        case 'w':
+            if (dir != DOWN) dir = UP;
+            break;
+        case 's':
+            if (dir != UP) dir = DOWN;
+            break;
+        case 'x':
+            gameOver = true;
+            break;
+        }
+    }
+}
+
+void Logic() {
+    int prevX = tailX[0];
+    int prevY = tailY[0];
+    int prev2X, prev2Y;
+    tailX[0] = snakeX;
+    tailY[0] = snakeY;
+    for (int i = 1; i < nTail; i++) {
+        prev2X = tailX[i];
+        prev2Y = tailY[i];
+        tailX[i] = prevX;
+        tailY[i] = prevY;
+        prevX = prev2X;
+        prevY = prev2Y;
+    }
+    switch (dir) {
+    case LEFT:
+        snakeX--;
+        break;
+    case RIGHT:
+        snakeX++;
+        break;
+    case UP:
+        snakeY--;
+        break;
+    case DOWN:
+        snakeY++;
+        break;
+    default:
+        break;
+    }
+    if (snakeX >= width || snakeX < 0 || snakeY >= height || snakeY < 0)
+        gameOver = true;
+    for (int i = 0; i < nTail; i++) {
+        if (tailX[i] == snakeX && tailY[i] == snakeY)
+            gameOver = true;
+    }
+    if (snakeX == fruitX && snakeY == fruitY) {
+        nTail++;
+        fruitX = customRand(0, width - 1);
+        fruitY = customRand(0, height - 1);
+    }
+}
+int main() {
+    Setup();
+    while (!gameOver) {
+        Draw();
+        Input();
+        Logic();
+    }
+    cout << "Game Over!" << endl;
+    return 0;
+}
